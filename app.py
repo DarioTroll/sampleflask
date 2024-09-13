@@ -54,20 +54,32 @@ def admin_required(f):
 @app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form['email']
+        # Modifica qui: usa 'username' invece di 'email'
+        username = request.form['username']
         password = request.form['password']
+
+        # Connessione al database
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute('SELECT * FROM users WHERE email = %s', (email,))
+        
+        # Modifica qui: seleziona l'utente in base allo username
+        cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
         user = cursor.fetchone()
+
+        # Chiusura della connessione
         cursor.close()
         conn.close()
+
+        # Verifica la password e gestisce il login
         if user and check_password_hash(user['password'], password):
             session['user_id'] = user['id']
             return redirect('/home')
         else:
             return 'Credenziali non valide', 401
+
+    # Se GET, visualizza il form di login
     return render_template('login.html')
+
 
 # Pagina di registrazione
 @app.route('/register', methods=['GET', 'POST'])
