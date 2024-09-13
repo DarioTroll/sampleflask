@@ -2,9 +2,11 @@ from flask import Flask
 import os
 from functools import wraps
 from datetime import datetime
-from flask import Flask, request, redirect, session, render_template, flash
+from flask import Flask, request, redirect, session, render_template, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 import mysql.connector
+from mysql.connector import Error
+
 
 app = Flask(__name__)
 
@@ -17,6 +19,13 @@ if app.secret_key is None:
 
 # Funzione per ottenere la connessione al database
 def get_db_connection():
+
+    print(f'Host:', os.getenv('MYSQL_HOST'))
+    print(f'User:', os.getenv('MYSQL_USER'))
+    print(f'Password:', os.getenv('MYSQL_PASSWORD'))
+    print(f'Database:', os.getenv('MYSQL_DB'))
+    print(f'Port:', os.getenv('MYSQL_PORT'))
+
     return mysql.connector.connect(
         host=os.getenv('MYSQL_HOST'),
         user=os.getenv('MYSQL_USER'),
@@ -147,7 +156,7 @@ def home():
                 flash('Uscita registrata con successo.', 'success')
 
     # Recupera le informazioni dell'utente
-    cursor.execute('SELECT nome, cognome, is_admin FROM users WHERE id = %s', (user_id,))
+    cursor.execute('SELECT nome, cognome, is_admin, coffee_count FROM users WHERE id = %s', (user_id,))
     user = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -200,6 +209,41 @@ def presenze():
 
     return render_template('presenze.html', presenze_per_giorno=presenze_per_giorno)
 
+@app.route('/increment-coffee', methods=['POST'])
+def increment_coffee():
+    print("Incremento caffè chiamato!")
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Utente non autenticato'}), 401
+
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({'error': 'Impossibile connettersi al database'}), 500
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+        
+        # Recupera l'utente
+        cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
+        user = cursor.fetchone()
+
+        if not user:
+            return jsonify({'error': 'Utente non trovato'}), 404
+
+        # Incrementa il contatore del caffè
+        new_coffee_count = user['coffee_count'] + 1
+        cursor.execute('UPDATE users SET coffee_count = %s WHERE id = %s', (new_coffee_count, user_id))
+        conn.commit()
+
+        return jsonify({'new_count': new_coffee_count})
+
+    except Error as e:
+        print(f"Errore nel database: {e}")
+        return jsonify({'error': 'Errore durante l\'operazione'}), 500
+
+    finally:
+        cursor.close()
+        conn.close()
 
 @app.route('/logout')
 def logout():

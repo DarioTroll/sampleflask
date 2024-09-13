@@ -34,6 +34,11 @@ body {
     transform: scale(1.05); /* Ingrandisce leggermente il pulsante */
 }
 
+.btn-brown {
+    background-color: #6f4e37;
+    color: white;
+}
+
 
 
 
