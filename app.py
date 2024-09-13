@@ -6,6 +6,7 @@ from flask import Flask, request, redirect, session, render_template, flash, jso
 from werkzeug.security import generate_password_hash, check_password_hash
 import mysql.connector
 from mysql.connector import Error
+from datetime import datetime
 
 
 app = Flask(__name__)
@@ -81,12 +82,12 @@ def login():
     return render_template('login.html')
 
 
-# Pagina di registrazione
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         nome = request.form['nome']
         cognome = request.form['cognome']
+        username = request.form['username']
         email = request.form['email']
         password = request.form['password']
         confirm_password = request.form['confirm_password']
@@ -98,21 +99,21 @@ def register():
 
         hashed_password = generate_password_hash(password, method='sha256')
 
-        # Controlla se l'email è già registrata
+        # Controlla se l'username o l'email sono già registrati
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute('SELECT * FROM users WHERE email = %s', (email,))
+        cursor.execute('SELECT * FROM users WHERE username = %s OR email = %s', (username, email))
         existing_user = cursor.fetchone()
         if existing_user:
-            flash('L\'email è già registrata. Riprova con un\'altra.', 'error')
+            flash('Username o email già registrati. Riprova con un\'altra.', 'error')
             cursor.close()
             conn.close()
             return redirect('/register')
 
         try:
             # Inserisce il nuovo utente nel database
-            cursor.execute('INSERT INTO users (nome, cognome, email, password) VALUES (%s, %s, %s, %s)',
-                           (nome, cognome, email, hashed_password))
+            cursor.execute('INSERT INTO users (nome, cognome, username, email, password) VALUES (%s, %s, %s, %s, %s)',
+                           (nome, cognome, username, email, hashed_password))
             conn.commit()
             flash('Registrazione avvenuta con successo. Puoi ora effettuare il login.', 'success')
         except Exception as e:
@@ -125,6 +126,7 @@ def register():
         return redirect('/')
 
     return render_template('register.html')
+
 
 # Pagina home
 @app.route('/home', methods=['GET', 'POST'])
@@ -175,7 +177,8 @@ def home():
 
     return render_template('home.html', user=user)
 
-# Pagina presenze
+
+
 @app.route('/presenze')
 @admin_required  # Questa pagina è accessibile solo agli admin
 def presenze():
@@ -205,8 +208,8 @@ def presenze():
             presenze_per_giorno[data] = []
 
         # Gestione delle frazioni di secondo
-        entrata = presenza['ora_entrata'].strftime('%Y-%m-%d %H:%M:%S') if presenza['ora_entrata'] else 'N/A'
-        uscita = presenza['ora_uscita'].strftime('%Y-%m-%d %H:%M:%S') if presenza['ora_uscita'] else 'In corso'
+        entrata = presenza['ora_entrata'].strftime('%H:%M:%S') if presenza['ora_entrata'] else 'N/A'
+        uscita = presenza['ora_uscita'].strftime('%H:%M:%S') if presenza['ora_uscita'] else 'In corso'
 
         presenze_per_giorno[data].append({
             'id': presenza['id'],
@@ -220,6 +223,8 @@ def presenze():
     print("Presenze per giorno:", presenze_per_giorno)
 
     return render_template('presenze.html', presenze_per_giorno=presenze_per_giorno)
+
+
 
 @app.route('/increment-coffee', methods=['POST'])
 def increment_coffee():

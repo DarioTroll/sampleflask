@@ -19,11 +19,16 @@
             background-color: #5a6268;
         }
     </style>
+    <!-- Aggiungi questo link nel <head> del tuo file HTML -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        {% block content %}
-        {% endblock %}
+    <div class="pattern-container">
+        <div class="centered-container">
+            <div class="content-box">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
     </div>
 
     <!-- Bootstrap JS e dipendenze (Popper.js e jQuery) -->

@@ -39,6 +39,49 @@ body {
     color: white;
 }
 
+/* CSS per centrare gli elementi sia orizzontalmente che verticalmente */
+.centered-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Occupare tutto lo schermo in altezza */
+}
+
+.content-box {
+    width: 80%;
+    max-width: 600px; /* Limita la larghezza del contenuto */
+    text-align: center; /* Centra il testo */
+}
+
+/* Imposta l'immagine come pattern mattonellato per il body */
+body {
+    background-color: #CBD74D; /* Sostituisci con il colore che desideri */
+    margin: 0;
+    padding: 0;
+    height: 100vh; /* Assicura che il background copra l'intero schermo */
+    font-family: Arial, sans-serif; /* Esempio di font */
+}
+
+/* Se desideri applicare il colore di sfondo solo a un contenitore specifico */
+.container {
+    background-color: #CBD74D; /* Sostituisci con il colore che desideri */
+    padding: 20px; /* Esempio di padding per il contenitore */
+    border-radius: 8px; /* Esempio di bordi arrotondati */
+}
+
+/* Imposta il font predefinito per tutto il corpo della pagina */
+body {
+    font-family: 'Roboto', Arial, sans-serif;
+}
+
+/* Imposta il font per un contenitore specifico */
+.container {
+    font-family: 'Arial', sans-serif;
+}
+
+
+
+
 
 
 
