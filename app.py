@@ -170,6 +170,8 @@ def presenze():
     '''
     cursor.execute(query)
     presenze = cursor.fetchall()
+    cursor.close()
+    conn.close()
 
     # Verifica i dati recuperati
     print("Dati delle presenze:", presenze)
@@ -180,30 +182,24 @@ def presenze():
         data = presenza['data']
         if data not in presenze_per_giorno:
             presenze_per_giorno[data] = []
-        
+
         # Gestione delle frazioni di secondo
-        try:
-            entrata = datetime.strptime(presenza['ora_entrata'], '%Y-%m-%d %H:%M:%S.%f') if presenza['ora_entrata'] else 'N/A'
-            uscita = datetime.strptime(presenza['ora_uscita'], '%Y-%m-%d %H:%M:%S.%f') if presenza['ora_uscita'] else 'In corso'
-        except ValueError:
-            entrata = datetime.strptime(presenza['ora_entrata'], '%Y-%m-%d %H:%M:%S') if presenza['ora_entrata'] else 'N/A'
-            uscita = datetime.strptime(presenza['ora_uscita'], '%Y-%m-%d %H:%M:%S') if presenza['ora_uscita'] else 'In corso'
+        entrata = presenza['ora_entrata'].strftime('%Y-%m-%d %H:%M:%S') if presenza['ora_entrata'] else 'N/A'
+        uscita = presenza['ora_uscita'].strftime('%Y-%m-%d %H:%M:%S') if presenza['ora_uscita'] else 'In corso'
 
         presenze_per_giorno[data].append({
             'id': presenza['id'],
             'nome': presenza['nome'],
             'cognome': presenza['cognome'],
-            'entrata': entrata.strftime('%Y-%m-%d %H:%M:%S') if isinstance(entrata, datetime) else entrata,
-            'uscita': uscita.strftime('%Y-%m-%d %H:%M:%S') if isinstance(uscita, datetime) else uscita
+            'entrata': entrata,
+            'uscita': uscita
         })
 
     # Verifica i dati raggruppati
     print("Presenze per giorno:", presenze_per_giorno)
 
-    cursor.close()
-    conn.close()
-
     return render_template('presenze.html', presenze_per_giorno=presenze_per_giorno)
+
 
 @app.route('/logout')
 def logout():
