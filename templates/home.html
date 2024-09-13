@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h1 class="text-center">Buon studio, {{ user['nome'] }} {{ user['cognome'] }}!</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=True) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="post">
+            <button name="mark_in" type="submit" class="btn btn-success btn-block">Segna Entrata</button>
+            <button name="mark_out" type="submit" class="btn btn-danger btn-block">Segna Uscita</button>
+        </form>
+
+        {% if user['is_admin'] %}
+        <h2 class="text-center mt-4">Sezione Amministratore</h2>
+        <a href="/presenze" class="btn btn-info btn-block mt-2">Visualizza Presenze</a>
+        {% endif %}
+
+        <div class="text-center mt-4">
+            <!-- Pulsante di logout grigio -->
+            <a href="{{ url_for('logout') }}" class="btn btn-logout">Logout</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

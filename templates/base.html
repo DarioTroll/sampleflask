@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}La Mia App{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- CSS Personalizzato -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .caffe-btn {
+            background-color: #8B4513; /* Colore marrone per il caffè */
+            color: white;
+            border: none;
+            border-radius: 5px; /* Rende il pulsante con angoli arrotondati */
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1rem; /* Dimensioni del testo */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px; /* Spazio tra icona e testo */
+        }
+        .caffe-btn:hover {
+            background-color: #6F3E0D; /* Colore più scuro al passaggio del mouse */
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <!-- Bootstrap JS e dipendenze (Popper.js e jQuery) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

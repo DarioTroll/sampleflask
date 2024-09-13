@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presenze</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .table-container {
+            margin-bottom: 30px;
+        }
+        .date-header {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <!-- Pulsante per tornare indietro centrato con margine superiore -->
+        <div class="text-center mb-4">
+            <a href="{{ url_for('home') }}" class="btn btn-primary">Torna indietro</a>
+        </div>
+
+        <h1 class="text-center mb-4">Presenze</h1>
+
+        {% if presenze_per_giorno %}
+            {% for data, presenze in presenze_per_giorno.items() %}
+                <div class="table-container">
+                    <h2 class="text-center date-header">{{ data }}</h2>
+                    <table class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Cognome</th>
+                                <th>Ora Entrata</th>
+                                <th>Ora Uscita</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for presenza in presenze %}
+                                <tr>
+                                    <td>{{ presenza.nome }}</td>
+                                    <td>{{ presenza.cognome }}</td>
+                                    <td>{{ presenza.entrata }}</td>
+                                    <td>{{ presenza.uscita }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-center">Nessuna presenza registrata.</p>
+        {% endif %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
