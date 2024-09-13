@@ -6,6 +6,8 @@ from functools import wraps
 from datetime import datetime
 from flask import Flask, request, redirect, session, render_template, flash
 from werkzeug.security import generate_password_hash, check_password_hash
+import mysql.connector
+
 
 app = Flask(__name__)
 
@@ -18,9 +20,12 @@ if app.secret_key is None:
 
 # Funzione per ottenere la connessione al database
 def get_db_connection():
-    conn = sqlite3.connect('aula_studio.db')
-    conn.row_factory = sqlite3.Row
-    return conn
+    return mysql.connector.connect(
+        host=os.getenv('MYSQL_HOST'),
+        user=os.getenv('MYSQL_USER'),
+        password=os.getenv('MYSQL_PASSWORD'),
+        database=os.getenv('MYSQL_DB')
+    )
 
 # Decoratore per verificare se l'utente è admin
 def admin_required(f):
