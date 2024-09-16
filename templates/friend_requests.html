@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Richieste di Amicizia</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            background-color: #CBD74D; /* Colore di sfondo */
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .card {
+            margin-bottom: 20px;
+        }
+        .btn-back {
+            background-color: #FF6F61;
+            color: white;
+        }
+        .center-button {
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Bottone per tornare indietro, centrato -->
+        <div class="center-button mb-4">
+            <a href="{{ url_for('home') }}" class="btn btn-back">
+                &larr; Torna indietro
+            </a>
+        </div>
+
+        <h1 class="text-center">Gestione Richieste di Amicizia</h1>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=True) %}
+            {% if messages %}
+                <div class="alert-container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Sezione per inviare una richiesta di amicizia -->
+        <div class="card">
+            <div class="card-body">
+                <h3>Invia una richiesta di amicizia</h3>
+                <form id="sendFriendRequestForm" method="POST" action="/send_friend_request">
+                    <div class="form-group">
+                        <label for="username">Inserisci il nome utente:</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Invia richiesta</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Lista delle richieste di amicizia ricevute -->
+        <div class="card">
+            <div class="card-body">
+                <h3>Richieste di Amicizia Ricevute</h3>
+                <ul id="friendRequestsList" class="list-group">
+                    {% for request in friend_requests %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ request['nome'] }} {{ request['cognome'] }} ({{ request['username'] }})
+                            <div>
+                                <form method="POST" action="/respond_friend_request">
+                                    <input type="hidden" name="request_id" value="{{ request['id'] }}">
+                                    <button name="action" value="accept" type="submit" class="btn btn-success btn-sm">Accetta</button>
+                                    <button name="action" value="reject" type="submit" class="btn btn-danger btn-sm">Rifiuta</button>
+                                </form>
+                            </div>
+                        </li>
+                    {% else %}
+                        <li class="list-group-item">Nessuna richiesta di amicizia in sospeso</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Sezione amici -->
+        <div class="card">
+            <div class="card-body">
+                <h3>Amici</h3>
+                <ul id="friendsList" class="list-group">
+                    {% for friend in friends %}
+                        <li class="list-group-item">
+                            <div class="friend-info">
+                                {{ friend['nome'] }} {{ friend['cognome'] }}
+                            </div>
+                            <div class="coffee-info">
+                                {{ friend['coffee_count'] }} <span class="coffee-icon">☕</span>
+                            </div>
+                        </li>
+                    {% else %}
+                        <li class="list-group-item">Non hai amici al momento.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

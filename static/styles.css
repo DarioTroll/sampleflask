@@ -79,6 +79,24 @@ body {
     font-family: 'Arial', sans-serif;
 }
 
+.list-group-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+}
+.friend-info {
+    font-weight: bold;
+}
+.coffee-info {
+    display: flex;
+    align-items: center;
+}
+.coffee-icon {
+    margin-left: 5px;
+}
+
+
 
 
 

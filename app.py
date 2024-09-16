@@ -177,7 +177,142 @@ def home():
 
     return render_template('home.html', user=user)
 
+from flask import Flask, request, jsonify, session, render_template, redirect
+import mysql.connector
 
+# Rotta per visualizzare la pagina delle richieste di amicizia
+@app.route('/friend_requests')
+def friend_requests():
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    user_id = session['user_id']
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Recupera le richieste di amicizia ricevute
+    cursor.execute('''
+        SELECT r.id, u.nome, u.cognome, u.username, u.coffee_count 
+        FROM friend_requests r
+        JOIN users u ON r.sender_id = u.id
+        WHERE r.receiver_id = %s AND r.status = 'pending'
+    ''', (user_id,))
+    received_requests = cursor.fetchall()
+
+    # Recupera la lista degli amici e ordina per numero di caffè decrescente
+    cursor.execute('''
+        SELECT u.id, u.nome, u.cognome, u.username, u.coffee_count
+        FROM friends f
+        JOIN users u ON (f.user_id_1 = u.id OR f.user_id_2 = u.id)
+        WHERE (f.user_id_1 = %s OR f.user_id_2 = %s) AND u.id != %s
+        ORDER BY u.coffee_count DESC
+    ''', (user_id, user_id, user_id))
+    friends = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return render_template('friend_requests.html', 
+                           received_requests=received_requests, 
+                           friends=friends)
+
+# Rotta per inviare una richiesta di amicizia
+@app.route('/send_friend_request', methods=['POST'])
+def send_friend_request():
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    user_id = session['user_id']
+    username = request.form.get('username')
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Verifica se l'utente a cui inviare la richiesta esiste
+    cursor.execute('SELECT id FROM users WHERE username = %s', (username,))
+    receiver = cursor.fetchone()
+
+    if not receiver:
+        flash('Utente non trovato.', 'danger')
+        return redirect('/friend_requests')
+
+    receiver_id = receiver['id']
+
+    # Controlla se una richiesta di amicizia pendente esiste già tra gli utenti (in entrambe le direzioni)
+    cursor.execute('''
+        SELECT * FROM friend_requests 
+        WHERE (sender_id = %s AND receiver_id = %s) 
+        OR (sender_id = %s AND receiver_id = %s)
+    ''', (user_id, receiver_id, receiver_id, user_id))
+    
+    existing_request = cursor.fetchone()
+
+    if existing_request:
+        flash('Una richiesta di amicizia è già in sospeso tra di voi.', 'warning')
+    else:
+        # Controlla se esiste già un'amicizia tra gli utenti
+        cursor.execute('''
+            SELECT * FROM friends 
+            WHERE (user_id_1 = %s AND user_id_2 = %s) 
+            OR (user_id_1 = %s AND user_id_2 = %s)
+        ''', (user_id, receiver_id, receiver_id, user_id))
+
+        existing_friendship = cursor.fetchone()
+
+        if existing_friendship:
+            flash('Siete già amici!', 'info')
+        else:
+            # Inserisci la richiesta di amicizia
+            cursor.execute('''
+                INSERT INTO friend_requests (sender_id, receiver_id, status) 
+                VALUES (%s, %s, 'pending')
+            ''', (user_id, receiver_id))
+            conn.commit()
+            flash('Richiesta di amicizia inviata con successo!', 'success')
+
+    cursor.close()
+    conn.close()
+
+    return redirect('/friend_requests')
+
+# Rotta per rispondere alle richieste di amicizia
+@app.route('/respond_friend_request', methods=['POST'])
+def respond_friend_request():
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    request_id = request.form.get('request_id')
+    action = request.form.get('action')
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Verifica se la richiesta esiste
+    cursor.execute('SELECT * FROM friend_requests WHERE id = %s', (request_id,))
+    request_info = cursor.fetchone()
+
+    if not request_info or request_info['receiver_id'] != session['user_id']:
+        flash('Richiesta non trovata o non autorizzata.', 'danger')
+    else:
+        if action == 'accept':
+            # Aggiungi l'amicizia nella tabella "friends"
+            cursor.execute('''
+                INSERT INTO friends (user_id_1, user_id_2) 
+                VALUES (%s, %s)
+            ''', (request_info['sender_id'], request_info['receiver_id']))
+            conn.commit()
+            flash('Richiesta di amicizia accettata!', 'success')
+        elif action == 'reject':
+            flash('Richiesta di amicizia rifiutata.', 'info')
+
+        # Elimina la richiesta di amicizia (accettata o rifiutata)
+        cursor.execute('DELETE FROM friend_requests WHERE id = %s', (request_id,))
+        conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return redirect('/friend_requests')
 
 @app.route('/presenze')
 @admin_required  # Questa pagina è accessibile solo agli admin
@@ -223,8 +358,6 @@ def presenze():
     print("Presenze per giorno:", presenze_per_giorno)
 
     return render_template('presenze.html', presenze_per_giorno=presenze_per_giorno)
-
-
 
 @app.route('/increment-coffee', methods=['POST'])
 def increment_coffee():

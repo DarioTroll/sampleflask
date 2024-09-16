@@ -49,6 +49,12 @@
                             Prendi un caffè: <span id="coffee-count">{{ user['coffee_count'] }}</span>
                         </button>
                     </div>
+
+                    <div class="text-center mt-4">
+                        <a href="{{ url_for('friend_requests') }}" class="btn btn-primary btn-block">
+                            Gestisci le richieste di amicizia
+                        </a>
+                    </div>
     
                     <script>
                         $(document).ready(function() {
